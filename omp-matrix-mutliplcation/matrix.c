@@ -61,6 +61,7 @@ int main(int argc, char *argv[])
 		{
 			if (fabs(calc_product[i][j] - real_product[i][j]) > 0.001)
 			{
+				printf("%dx%d: %lf expected. Was %lf\n", i, j, real_product[i][j], calc_product[i][j]);
 				puts("\e[0;31m==> Calculated product differs from real product!");
 				exit(1);
 			}
