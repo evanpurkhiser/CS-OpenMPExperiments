@@ -40,5 +40,21 @@ int main(int argc, char *argv[])
 		fclose(product_file);
 	}
 
+	// Check that our calculated value matches the real product
+	for (int i = 0; i < MATRIX_SIZE; ++i)
+	{
+		for (int j = 0; j < MATRIX_SIZE; ++j)
+		{
+			if (calc_product[i][j] != real_product[i][j])
+			{
+				puts("\e[0;31m==> Calculated product differs from real product!");
+				exit(1);
+			}
+		}
+	}
+
+	puts("\e[0;32m==>\e[0m Calculated product matches real product");
+	puts("\e[0;32m==>\e[0m Calculated product matches real product");
+
 	return 0;
 }
