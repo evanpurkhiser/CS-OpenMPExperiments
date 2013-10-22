@@ -68,7 +68,6 @@ int main(int argc, char *argv[])
 	}
 
 	puts("\e[0;32m==>\e[0m Calculated product matches real product");
-	puts("\e[0;32m==>\e[0m Calculated product matches real product");
 
 	return 0;
 }
