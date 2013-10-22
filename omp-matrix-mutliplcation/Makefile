@@ -1,12 +1,12 @@
-all: matrix matrix1.txt matrix2.txt
+all: matrix matrix1.txt matrix2.txt product.txt
 
 clean:
-	rm -f matrix matrix{1,2}.txt report.pdf
+	rm -f matrix matrix{1,2}.txt product.txt report.pdf
 
 report.pdf: report.md
 	pandoc report.md -V geometry:margin=1in -o report.pdf
 
-matrix1.txt matrix2.txt:
+matrix1.txt matrix2.txt product.txt:
 	wget --no-verbose http://www.cs.uakron.edu/~toneil/cs477/Labs/$@
 	touch $@
 
