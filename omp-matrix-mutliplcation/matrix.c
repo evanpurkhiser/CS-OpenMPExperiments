@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <sys/time.h>
+#include <math.h>
 
 #define MATRIX_1 "matrix1.txt"
 #define MATRIX_2 "matrix2.txt"
@@ -58,7 +59,7 @@ int main(int argc, char *argv[])
 	{
 		for (int j = 0; j < MATRIX_SIZE; ++j)
 		{
-			if (calc_product[i][j] != real_product[i][j])
+			if (fabs(calc_product[i][j] - real_product[i][j]) > 0.001)
 			{
 				puts("\e[0;31m==> Calculated product differs from real product!");
 				exit(1);
