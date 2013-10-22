@@ -40,6 +40,19 @@ int main(int argc, char *argv[])
 		fclose(product_file);
 	}
 
+	int block_size  = 4;
+
+	if (argc > 1)
+	{
+		block_size = atoi(argv[1]);
+
+		if (MATRIX_SIZE % block_size != 0)
+		{
+			printf("\e[0;31m==> %d Block size is not divisible into the matrix\n", block_size);
+			exit(1);
+		}
+	}
+
 	// Check that our calculated value matches the real product
 	for (int i = 0; i < MATRIX_SIZE; ++i)
 	{
