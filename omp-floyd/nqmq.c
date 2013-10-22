@@ -1,4 +1,4 @@
-#include <pthread.h>
+#include <omp.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,13 +17,9 @@ int num_cities = 0;
 // By default use one thread of execution
 int num_threads = 1;
 
-// We need a barrier to sync up the threads before doing the next iteration of
-// calculations
-pthread_barrier_t calc_barrier;
-
-void *calculate_shorest_paths(void *arg)
+void calculate_shortest_paths()
 {
-	int id = *(int*) arg;
+	int id = omp_get_thread_num();
 
 	// Determine the rows we will be calculating
 	int start = id * num_cities / num_threads;
@@ -33,7 +29,7 @@ void *calculate_shorest_paths(void *arg)
 	{
 		// Wait for all threads before we do shortest path calculations on the
 		// adjacency matrix for this intermediate city
-		pthread_barrier_wait(&calc_barrier);
+		#pragma omp barrier
 
 		for (int i = start; i < end; ++i)
 		{
@@ -60,8 +56,6 @@ void *calculate_shorest_paths(void *arg)
 
 	printf("    \e[0;33mThread-%d \e[0;32m->\e[0m Finished all calculations for rows %2d => %2d\n",
 		id, start + 1, end);
-
-	return NULL;
 }
 
 void print_path_directions(int a, int b)
@@ -180,31 +174,20 @@ int main(int argc, char *argv[])
 
 	printf("\e[0;34m==>\e[0m Starting up %d threads to calculate shortest paths...\n", num_threads);
 
-	pthread_t threads[num_threads];
-	int thread_ids[num_threads];
-
-	pthread_barrier_init(&calc_barrier, NULL, num_threads);
-
 	struct timeval time_start;
 	struct timeval time_end;
 
-	for (int i = 0; i < num_threads; ++i)
-	{
-		thread_ids[i] = i;
-		pthread_create(&threads[i], NULL, calculate_shorest_paths, &thread_ids[i]);
-	}
-
 	gettimeofday(&time_start, NULL);
 
-	// Wait for calculations to finish
-	for (int i =0; i < num_threads; pthread_join(threads[i++], NULL));
+	#pragma omp parallel num_threads(num_threads)
+	calculate_shortest_paths();
 
 	gettimeofday(&time_end, NULL);
 
 	// Calculate how long it took to find the shortest paths
 	long long execution_time = 1000000LL
 		* (time_end.tv_sec  - time_start.tv_sec)
-		+ (time_end.tv_usec - time_start.tv_usec);+
+		+ (time_end.tv_usec - time_start.tv_usec);
 
 	printf("\e[0;34m==>\e[0m Finished calculating shortest paths in %lldµ seconds.\n\n",
 		execution_time);
