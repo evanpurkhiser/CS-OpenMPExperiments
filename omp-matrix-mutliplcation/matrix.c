@@ -54,6 +54,12 @@ int main(int argc, char *argv[])
 		}
 	}
 
+
+	struct timeval time_start;
+	struct timeval time_end;
+
+	gettimeofday(&time_start, NULL);
+
 	// Do the calculations
 	for (int i = 0; i < MATRIX_SIZE; i += block_size)
 	{
@@ -74,6 +80,13 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	gettimeofday(&time_end, NULL);
+
+	// Calculate how long it took to find the shortest paths
+	long long execution_time = 1000000LL
+		* (time_end.tv_sec  - time_start.tv_sec)
+		+ (time_end.tv_usec - time_start.tv_usec);
+
 	// Check that our calculated value matches the real product
 	for (int i = 0; i < MATRIX_SIZE; ++i)
 	{
@@ -87,6 +100,8 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
+
+	printf("%lld\n", execution_time);
 
 	puts("\e[0;32m==>\e[0m Calculated product matches real product");
 
