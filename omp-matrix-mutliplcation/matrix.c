@@ -54,6 +54,26 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	// Do the calculations
+	for (int i = 0; i < MATRIX_SIZE; i += block_size)
+	{
+		for (int j = 0; j < MATRIX_SIZE; j += block_size)
+		{
+			#pragma omp parallel num_threads(block_size * block_size)
+			{
+				int thread_id = omp_get_thread_num(),
+					x = thread_id / block_size,
+				    y = thread_id % block_size;
+
+				for (int k = 0; k < MATRIX_SIZE; ++k)
+				{
+					#pragma omp critical
+					calc_product[i + x][j + y] += matrix1[i + x][k] * matrix2[k][j + y];
+				}
+			}
+		}
+	}
+
 	// Check that our calculated value matches the real product
 	for (int i = 0; i < MATRIX_SIZE; ++i)
 	{
