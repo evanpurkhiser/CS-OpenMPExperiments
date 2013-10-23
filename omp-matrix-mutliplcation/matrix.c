@@ -80,16 +80,16 @@ int main(int argc, char *argv[])
 		{
 			for (int j = 0; j < MATRIX_SIZE; j += block_size)
 			{
-				#pragma omp parallel num_threads(block_size * block_size)
+				#pragma omp parallel for collapse(2)
+				for (int x = 0; x < block_size; ++x)
 				{
-					int thread_id = omp_get_thread_num(),
-						x = thread_id / block_size,
-						y = thread_id % block_size;
-
-					for (int k = 0; k < MATRIX_SIZE; ++k)
+					for (int y = 0; y < block_size; ++y)
 					{
-						#pragma omp critical
-						calc_product[i + x][j + y] += matrix1[i + x][k] * matrix2[k][j + y];
+						for (int k = 0; k < MATRIX_SIZE; ++k)
+						{
+							#pragma omp critical
+							calc_product[i + x][j + y] += matrix1[i + x][k] * matrix2[k][j + y];
+						}
 					}
 				}
 			}
