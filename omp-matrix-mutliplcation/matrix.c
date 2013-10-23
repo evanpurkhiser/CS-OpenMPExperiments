@@ -54,56 +54,86 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	int trials = 1;
 
-	struct timeval time_start;
-	struct timeval time_end;
-
-	gettimeofday(&time_start, NULL);
-
-	// Do the calculations
-	for (int i = 0; i < MATRIX_SIZE; i += block_size)
+	if (argc > 2)
 	{
-		for (int j = 0; j < MATRIX_SIZE; j += block_size)
-		{
-			#pragma omp parallel num_threads(block_size * block_size)
-			{
-				int thread_id = omp_get_thread_num(),
-					x = thread_id / block_size,
-				    y = thread_id % block_size;
+		trials = atoi(argv[2]);
+	}
 
-				for (int k = 0; k < MATRIX_SIZE; ++k)
+	long long execution_times[trials];
+
+	printf("\e[0;34m==>\e[0m Running %d block matrix multiplcation trials...\n", trials);
+
+	for (int trial = 0; trial < trials; ++trial)
+	{
+		// Empty out the array
+		memset(calc_product, 0, sizeof(calc_product[0][0]) * MATRIX_SIZE * MATRIX_SIZE);
+
+		struct timeval time_start;
+		struct timeval time_end;
+
+		gettimeofday(&time_start, NULL);
+
+		// Do the calculations
+		for (int i = 0; i < MATRIX_SIZE; i += block_size)
+		{
+			for (int j = 0; j < MATRIX_SIZE; j += block_size)
+			{
+				#pragma omp parallel num_threads(block_size * block_size)
 				{
-					#pragma omp critical
-					calc_product[i + x][j + y] += matrix1[i + x][k] * matrix2[k][j + y];
+					int thread_id = omp_get_thread_num(),
+						x = thread_id / block_size,
+						y = thread_id % block_size;
+
+					for (int k = 0; k < MATRIX_SIZE; ++k)
+					{
+						#pragma omp critical
+						calc_product[i + x][j + y] += matrix1[i + x][k] * matrix2[k][j + y];
+					}
+				}
+			}
+		}
+
+		gettimeofday(&time_end, NULL);
+
+		// Calculate how long it took to find the shortest paths
+		execution_times[trial] = 1000000LL
+			* (time_end.tv_sec  - time_start.tv_sec)
+			+ (time_end.tv_usec - time_start.tv_usec);
+
+		// Check that our calculated value matches the real product
+		for (int i = 0; i < MATRIX_SIZE; ++i)
+		{
+			for (int j = 0; j < MATRIX_SIZE; ++j)
+			{
+				if (fabs(calc_product[i][j] - real_product[i][j]) > 0.001)
+				{
+					printf("%dx%d: %lf expected. Was %lf\n", i, j, real_product[i][j], calc_product[i][j]);
+					puts("\e[0;31m==> Calculated product differs from real product!");
+					exit(1);
 				}
 			}
 		}
 	}
 
-	gettimeofday(&time_end, NULL);
+	long long min = INT_MAX,
+	          avg = 0;
 
-	// Calculate how long it took to find the shortest paths
-	long long execution_time = 1000000LL
-		* (time_end.tv_sec  - time_start.tv_sec)
-		+ (time_end.tv_usec - time_start.tv_usec);
-
-	// Check that our calculated value matches the real product
-	for (int i = 0; i < MATRIX_SIZE; ++i)
+	for (int i = 0; i < trials; ++i)
 	{
-		for (int j = 0; j < MATRIX_SIZE; ++j)
+		if (execution_times[i] < min)
 		{
-			if (fabs(calc_product[i][j] - real_product[i][j]) > 0.001)
-			{
-				printf("%dx%d: %lf expected. Was %lf\n", i, j, real_product[i][j], calc_product[i][j]);
-				puts("\e[0;31m==> Calculated product differs from real product!");
-				exit(1);
-			}
+			min = execution_times[i];
 		}
+
+		avg += execution_times[i];
 	}
 
-	printf("%lld\n", execution_time);
+	printf("avg: %lld\n", avg / trials);
+	printf("min: %lld\n", min);
 
-	puts("\e[0;32m==>\e[0m Calculated product matches real product");
+	puts("\e[0;32m==>\e[0m All calculated product matches real product");
 
 	return 0;
 }
